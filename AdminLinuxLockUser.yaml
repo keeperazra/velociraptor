@@ -1,0 +1,17 @@
+name: Custom.Admin.Linux.LockUser
+description: |
+   Locks a linux user account by setting it to expired.
+
+# Can be CLIENT, CLIENT_EVENT, SERVER, SERVER_EVENT
+type: CLIENT
+
+parameters:
+   - name: target
+     description: Target user to be disabled.
+
+sources:
+  - precondition:
+      SELECT OS From info() where OS = 'linux'
+
+    query: |
+      SELECT * FROM execve(argv=['chage', '-E0', target])
