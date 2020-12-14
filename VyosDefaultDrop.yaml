@@ -1,0 +1,19 @@
+name: Custom.Vyos.DefaultDrop
+description: |
+   This is supposed to pull VYOS dropped packet log.
+
+# Can be CLIENT, CLIENT_EVENT, SERVER, SERVER_EVENT
+type: CLIENT_EVENT
+
+parameters:
+   - name: firewallLogFile
+     default: /var/log/messages
+   - name: firewallGrok
+     default: >-
+       %{SYSLOGTIMESTAMP:timestamp} %{SYSLOGHOST:logsource} kernel: \[\S+\] \[%{DATA:firewall}-default-D\].*?SRC=%{IP:source} DST=%{IP:destination}.*?PROTO=%{WORD:protocol} (SPT=%{POSINT:source_port} DPT=%{POSINT:destination_port})?
+
+sources:
+  - queries:
+    - SELECT grok(grok=firewallGrok, data=Line) AS DropEvent, Line
+          FROM watch_syslog(filename=firewallLogFile)
+          WHERE DropEvent.logsource =~ ".+"
